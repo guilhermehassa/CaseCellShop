@@ -1,0 +1,26 @@
+{
+  "name": "casecellshop",
+  "private": true,
+  "workspaces": ["packages/*", "apps/*"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev:up": "docker compose up --build",
+    "dev:down": "docker compose down",
+    "reset:all": "docker compose down -v && docker compose up --build",
+    "db:reset:erp": "npm run -w packages/erp-db db:reset",
+    "db:reset:shop": "npm run -w packages/store-db db:reset",
+    "db:reset": "npm run db:reset:erp && npm run db:reset:shop",
+    "db:migrate:erp": "npm run -w packages/erp-db db:migrate",
+    "db:migrate:shop": "npm run -w packages/store-db db:migrate",
+    "db:migrate": "npm run db:migrate:erp && npm run db:migrate:shop",
+    "db:seed:erp": "npm run -w packages/erp-db db:seed",
+    "db:seed:shop": "npm run -w packages/store-db db:seed",
+    "db:seed": "npm run db:seed:erp && npm run db:seed:shop",
+    "generate": "npm run -w packages/store-db generate && npm run -w packages/erp-db generate",
+    "test": "npm run -ws --if-present test",
+    "test:api": "npm run -w apps/store-api test",
+    "test:erp": "npm run -w apps/erp test",
+    "test:web": "npm run -w apps/store-web test",
+    "build": "npm run -ws --if-present build"
+  }
+}

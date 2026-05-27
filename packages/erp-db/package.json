@@ -1,0 +1,24 @@
+{
+  "name": "@cc/erp-db",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "generate": "prisma generate",
+    "build": "prisma generate && tsc -p tsconfig.json",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:reset": "prisma migrate reset --force && npm run db:seed"
+  },
+  "prisma": { "seed": "tsx prisma/seed.ts" },
+  "dependencies": {
+    "@prisma/client": "^5",
+    "@cc/contracts": "*"
+  },
+  "devDependencies": {
+    "prisma": "^5",
+    "tsx": "^4",
+    "typescript": "^5"
+  }
+}
