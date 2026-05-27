@@ -1,9 +1,35 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated"
+  provider      = "prisma-client-js"
+  output        = "../src/generated"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "mysql"
   url      = env("ERP_DATABASE_URL")
+}
+
+model ErpProduct {
+  sku         String   @id
+  name        String
+  description String   @db.Text
+  priceCents  Int
+  stock       Int
+  imageUrl    String
+  active      Boolean  @default(true)
+  flaky       Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+
+model ErpOrder {
+  id           String   @id @default(cuid())
+  externalRef  String   @unique
+  sku          String
+  quantity     Int
+  status       String
+  invoiceId    String?
+  rejectReason String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
