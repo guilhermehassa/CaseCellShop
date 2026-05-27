@@ -57,7 +57,7 @@ export interface OrderStatusResponse {
 export interface ApiErrorBody {
   errorCode: ErrorCode;
   message: string;
-  details?: { field: string; message: string }[];
+  details: { field: string; message: string }[];
   availableQuantity?: number;
   requestId: string;
 }

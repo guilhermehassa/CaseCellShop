@@ -3,9 +3,15 @@ import { prisma, Prisma } from "../lib/prisma";
 import { commitReservation, releaseReservation } from "../modules/orders/orders.repo";
 import { logger } from "../lib/logger";
 import { env } from "../config/env";
+import type { OrderJobData } from "../queue/orderQueue";
 
-export async function processOrder(job: Job<{ orderId: string }>): Promise<void> {
-  const { orderId } = job.data;
+export async function processOrder(job: Job<OrderJobData>): Promise<void> {
+  const { orderId, requestId, idempotencyKey } = job.data;
+  const logCtx = {
+    orderId,
+    requestId: requestId ?? "req_unknown",
+    idempotencyKey: idempotencyKey ?? "idem_unknown",
+  };
 
   // Carrega o pedido
   const order = await prisma.order.findUnique({ where: { id: orderId } });
@@ -19,7 +25,7 @@ export async function processOrder(job: Job<{ orderId: string }>): Promise<void>
     where: { id: orderId },
     data: { status: "PROCESSING", attempts: { increment: 1 } },
   });
-  logger.info({ orderId, attempt: job.attemptsMade + 1 }, "order.processing");
+  logger.info({ ...logCtx, attempt: job.attemptsMade + 1 }, "order.processing");
 
   // Chama o ERP com timeout controlado via AbortController
   let resp: Response;
@@ -52,7 +58,7 @@ export async function processOrder(job: Job<{ orderId: string }>): Promise<void>
         });
         await releaseReservation(tx, orderId);
       });
-      logger.info({ orderId, reason: "MAX_ATTEMPTS_NETWORK" }, "order.failed");
+      logger.info({ ...logCtx, reason: "MAX_ATTEMPTS_NETWORK" }, "order.failed");
       return; // Não relança — esgotou
     }
 
@@ -60,7 +66,7 @@ export async function processOrder(job: Job<{ orderId: string }>): Promise<void>
       where: { id: orderId },
       data: { status: "RETRYING", lastError: errMsg },
     });
-    logger.info({ orderId, attempt: job.attemptsMade + 1 }, "order.retrying");
+    logger.info({ ...logCtx, attempt: job.attemptsMade + 1 }, "order.retrying");
     throw fetchErr; // Relança para BullMQ agendar retry com backoff
   }
 
@@ -78,7 +84,7 @@ export async function processOrder(job: Job<{ orderId: string }>): Promise<void>
       });
       await commitReservation(tx, orderId);
     });
-    logger.info({ orderId, erpOrderId: data.erpOrderId }, "order.confirmed");
+    logger.info({ ...logCtx, erpOrderId: data.erpOrderId }, "order.confirmed");
     return;
   }
 
@@ -91,7 +97,7 @@ export async function processOrder(job: Job<{ orderId: string }>): Promise<void>
       });
       await releaseReservation(tx, orderId);
     });
-    logger.info({ orderId, reason: "ERP_REJECTED" }, "order.failed");
+    logger.info({ ...logCtx, reason: "ERP_REJECTED" }, "order.failed");
     return; // Não relança — não adianta retry
   }
 
@@ -107,7 +113,7 @@ export async function processOrder(job: Job<{ orderId: string }>): Promise<void>
       });
       await releaseReservation(tx, orderId);
     });
-    logger.info({ orderId, reason: "MAX_ATTEMPTS" }, "order.failed");
+    logger.info({ ...logCtx, reason: "MAX_ATTEMPTS" }, "order.failed");
     return; // Não relança — esgotou
   }
 
@@ -116,6 +122,6 @@ export async function processOrder(job: Job<{ orderId: string }>): Promise<void>
     where: { id: orderId },
     data: { status: "RETRYING", lastError: tempErr.message },
   });
-  logger.info({ orderId, attempt: job.attemptsMade + 1 }, "order.retrying");
+  logger.info({ ...logCtx, attempt: job.attemptsMade + 1 }, "order.retrying");
   throw tempErr; // Relança para BullMQ agendar retry com backoff
 }

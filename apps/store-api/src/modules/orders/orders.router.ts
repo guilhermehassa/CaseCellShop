@@ -34,6 +34,7 @@ router.post("/api/orders", async (req: Request, res: Response, next: NextFunctio
       res.status(503).json({
         errorCode: "TEMPORARY_PROCESSING_ERROR",
         message: "Não foi possível processar o pedido agora. Tente novamente em alguns instantes.",
+        details: [],
         requestId,
       });
       return;
@@ -93,6 +94,7 @@ router.get("/api/orders/:id", async (req: Request, res: Response, next: NextFunc
       res.status(404).json({
         errorCode: "ORDER_NOT_FOUND",
         message: "Pedido não encontrado.",
+        details: [],
         requestId,
       });
       return;
@@ -128,3 +130,5 @@ router.get("/api/orders/:id", async (req: Request, res: Response, next: NextFunc
 });
 
 export default router;
+
+

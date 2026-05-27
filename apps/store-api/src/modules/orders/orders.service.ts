@@ -132,9 +132,9 @@ export async function createOrder(
 
   // 8. Enqueue fora da transação — se falhar, o reaper recupera pedidos órfãos
   try {
-    await enqueueOrder(order.id);
+    await enqueueOrder(order.id, requestId, idempotencyKey);
   } catch (err) {
-    logger.error({ orderId: order.id, requestId, err }, "order.enqueue_failed");
+    logger.error({ orderId: order.id, requestId, idempotencyKey, err }, "order.enqueue_failed");
     // Não lança: pedido foi criado; o reservation-reaper irá reenfileirar
   }
 

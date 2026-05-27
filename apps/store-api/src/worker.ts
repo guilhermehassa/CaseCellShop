@@ -16,7 +16,16 @@ const orderWorker = new Worker("process-order", processOrder, {
 });
 
 orderWorker.on("failed", (job, err) => {
-  logger.warn({ jobId: job?.id, orderId: job?.data?.orderId, err }, "bullmq.job.failed");
+  logger.warn(
+    {
+      jobId: job?.id,
+      orderId: job?.data?.orderId,
+      requestId: job?.data?.requestId ?? "req_unknown",
+      idempotencyKey: job?.data?.idempotencyKey ?? "idem_unknown",
+      err,
+    },
+    "bullmq.job.failed",
+  );
 });
 
 orderWorker.on("error", (err) => {

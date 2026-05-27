@@ -2,6 +2,12 @@ import { Queue } from "bullmq";
 import { logger } from "../lib/logger";
 import { env } from "../config/env";
 
+export interface OrderJobData {
+  orderId: string;
+  requestId?: string;
+  idempotencyKey?: string;
+}
+
 export const orderQueue = new Queue("process-order", {
   connection: { url: env.REDIS_URL },
   defaultJobOptions: {
@@ -12,7 +18,11 @@ export const orderQueue = new Queue("process-order", {
   },
 });
 
-export async function enqueueOrder(orderId: string): Promise<void> {
-  await orderQueue.add("process-order", { orderId }, { jobId: orderId });
-  logger.info({ orderId }, "order.enqueued");
+export async function enqueueOrder(
+  orderId: string,
+  requestId?: string,
+  idempotencyKey?: string,
+): Promise<void> {
+  await orderQueue.add("process-order", { orderId, requestId, idempotencyKey }, { jobId: orderId });
+  logger.info({ orderId, requestId, idempotencyKey }, "order.enqueued");
 }

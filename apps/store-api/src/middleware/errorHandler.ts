@@ -15,6 +15,7 @@ export function errorHandler(
     const body: Record<string, unknown> = {
       errorCode: err.code,
       message: err.message,
+      details: [],
       requestId,
     };
 
@@ -35,6 +36,7 @@ export function errorHandler(
   res.status(500).json({
     errorCode: "INTERNAL_ERROR",
     message: "Ocorreu um erro interno. Tente novamente mais tarde.",
+    details: [],
     requestId,
   });
 }
