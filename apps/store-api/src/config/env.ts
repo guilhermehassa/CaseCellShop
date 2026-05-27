@@ -4,6 +4,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1),
   ERP_BASE_URL: z.string().min(1),
+  ERP_TIMEOUT_MS: z.coerce.number().int().positive().default(8000),
   PORT: z.coerce.number().int().positive().default(3000),
   LOG_LEVEL: z.string().default("info"),
   RESERVATION_TTL_MINUTES: z.coerce.number().int().positive().default(15),

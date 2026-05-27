@@ -6,7 +6,9 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
-    "test": "vitest run"
+    "test": "vitest run --config vitest.config.ts --reporter verbose",
+    "test:integration": "vitest run --config vitest.integration.config.ts --reporter verbose",
+    "test:all": "vitest run --config vitest.config.ts && vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
     "@cc/store-db": "*",
