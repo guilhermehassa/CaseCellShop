@@ -8,3 +8,73 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum OrderStatus {
+  PENDING_PROCESSING
+  PROCESSING
+  RETRYING
+  CONFIRMED
+  FAILED
+  EXPIRED
+  CANCELED
+}
+
+model Product {
+  id           String     @id
+  name         String
+  description  String
+  priceCents   Int
+  imageUrl     String
+  active       Boolean    @default(true)
+  lastSyncedAt DateTime?
+  inventory    Inventory?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Inventory {
+  productId String   @id
+  product   Product  @relation(fields: [productId], references: [id])
+  available Int
+  reserved  Int      @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id             String         @id @default(cuid())
+  productId      String
+  quantity       Int
+  unitPriceCents Int
+  totalCents     Int
+  customerName   String
+  customerEmail  String
+  status         OrderStatus    @default(PENDING_PROCESSING)
+  erpOrderId     String?
+  invoiceId      String?
+  attempts       Int            @default(0)
+  lastError      String?
+  reservation    Reservation?
+  idempotency    IdempotencyKey?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Reservation {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId String
+  quantity  Int
+  status    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IdempotencyKey {
+  key         String   @id
+  requestHash String
+  orderId     String   @unique
+  order       Order    @relation(fields: [orderId], references: [id])
+  createdAt   DateTime @default(now())
+}
