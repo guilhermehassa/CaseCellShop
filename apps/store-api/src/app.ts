@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { requestIdMiddleware } from "./middleware/requestId";
 import { errorHandler } from "./middleware/errorHandler";
 import { productsRouter } from "./modules/products/products.router";
+import ordersRouter from "./modules/orders/orders.router";
 
 export function createApp(): express.Application {
   const app = express();
@@ -19,6 +20,7 @@ export function createApp(): express.Application {
 
   // Rotas de domínio
   app.use("/api/products", productsRouter);
+  app.use(ordersRouter);
 
   // Error handler (deve ser o último middleware)
   app.use(errorHandler);
