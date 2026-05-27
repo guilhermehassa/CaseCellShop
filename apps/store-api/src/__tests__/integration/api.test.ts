@@ -23,7 +23,15 @@ import { randomUUID } from "crypto";
 
 const API = "http://localhost:3000";
 
-const VALID_PRODUCT = "case-galaxy-a55";
+const SUCCESS_CANDIDATES = [
+  "case-iphone-15",
+  "case-galaxy-s24",
+  "case-galaxy-a55",
+  "case-pixel-9",
+  "case-xiaomi-14",
+  "case-asus-rog",
+];
+const VALID_PRODUCT = SUCCESS_CANDIDATES[0];
 const NO_STOCK_PRODUCT = "case-moto-g84";
 const MISSING_PRODUCT = "non-existent-sku-xyz";
 
@@ -52,6 +60,25 @@ async function getOrder(orderId: string) {
   const res = await fetch(`${API}/api/orders/${orderId}`);
   const body = await res.json();
   return { status: res.status, body };
+}
+
+async function pickProductWithStock(minAvailable = 1): Promise<string> {
+  const res = await fetch(`${API}/api/products`);
+  if (res.status !== 200) {
+    throw new Error(`Could not list products to pick stock (status ${res.status})`);
+  }
+
+  const products = (await res.json()) as Array<{ id: string; availableQuantity: number }>;
+  const chosen = SUCCESS_CANDIDATES.find((id) => {
+    const p = products.find((item) => item.id === id);
+    return p && p.availableQuantity >= minAvailable;
+  });
+
+  if (!chosen) {
+    throw new Error("No test product with enough stock available. Reset stack with `docker compose down -v && docker compose up -d`.");
+  }
+
+  return chosen;
 }
 
 function waitForStatus(orderId: string, targetStatus: string, timeoutMs = 30000): Promise<any> {
@@ -157,8 +184,9 @@ describe("POST /api/orders - business errors", () => {
 // -----------------------------------------------------------------------
 describe("POST /api/orders - success path", () => {
   it("202 PENDING_PROCESSING with orderId and message", async () => {
+    const productId = await pickProductWithStock();
     const key = randomUUID();
-    const { status, body } = await postOrder(VALID_PRODUCT, 1, key);
+    const { status, body } = await postOrder(productId, 1, key);
     expect(status).toBe(202);
     expect(body.status).toBe("PENDING_PROCESSING");
     expect(body.orderId).toBeDefined();
@@ -167,22 +195,24 @@ describe("POST /api/orders - success path", () => {
   });
 
   it("idempotency: same key+payload returns 200 with same orderId", async () => {
+    const productId = await pickProductWithStock();
     const key = randomUUID();
-    const first = await postOrder(VALID_PRODUCT, 1, key);
+    const first = await postOrder(productId, 1, key);
     expect(first.status).toBe(202);
 
-    const second = await postOrder(VALID_PRODUCT, 1, key);
+    const second = await postOrder(productId, 1, key);
     expect(second.status).toBe(200);
     expect(second.body.orderId).toBe(first.body.orderId);
   });
 
   it("idempotency key reuse: same key but different payload returns 422", async () => {
+    const productId = await pickProductWithStock(2);
     const key = randomUUID();
-    const first = await postOrder(VALID_PRODUCT, 1, key);
+    const first = await postOrder(productId, 1, key);
     expect(first.status).toBe(202);
 
     // Same key but different quantity
-    const second = await postOrder(VALID_PRODUCT, 2, key);
+    const second = await postOrder(productId, 2, key);
     expect(second.status).toBe(422);
     expect(second.body.errorCode).toBe("IDEMPOTENCY_KEY_REUSED");
   });
@@ -197,15 +227,16 @@ describe("GET /api/orders/:id", () => {
   });
 
   it("200 with all expected fields for existing order", async () => {
+    const productId = await pickProductWithStock();
     const key = randomUUID();
-    const created = await postOrder(VALID_PRODUCT, 1, key);
+    const created = await postOrder(productId, 1, key);
     expect(created.status).toBe(202);
 
     const { status, body } = await getOrder(created.body.orderId);
     expect(status).toBe(200);
     expect(body).toMatchObject({
       orderId: created.body.orderId,
-      productId: VALID_PRODUCT,
+      productId,
       quantity: 1,
       totalCents: expect.any(Number),
       createdAt: expect.any(String),
@@ -220,8 +251,9 @@ describe("GET /api/orders/:id", () => {
 // -----------------------------------------------------------------------
 describe("Worker integration: normal order reaches CONFIRMED", () => {
   it("order transitions to CONFIRMED within 30s", async () => {
+    const productId = await pickProductWithStock();
     const key = randomUUID();
-    const created = await postOrder(VALID_PRODUCT, 1, key);
+    const created = await postOrder(productId, 1, key);
     expect(created.status).toBe(202);
 
     const confirmed = await waitForStatus(created.body.orderId, "CONFIRMED", 30000);
