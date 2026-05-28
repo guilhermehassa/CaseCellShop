@@ -37,11 +37,13 @@ Serviços:
 ```bash
 docker compose down -v && docker compose up --build
 npm run db:reset
+npm run eval:reset
 ```
 
 Notas:
 - `down -v && up --build` recria o ambiente completo.
 - `npm run db:reset` executa reset lógico em ordem ERP -> loja, com migrations + seed.
+- `npm run eval:reset` sobe serviços se necessário, executa reset lógico e limpa cache `products:list` no Redis.
 
 ## Contrato da API (resumo)
 
@@ -83,6 +85,14 @@ Envelope de erro:
 ```bash
 npm test
 ```
+
+## Demonstracoes de resolucao dos problemas (Parte 1.B)
+- Roteiro de avaliacao manual (seed limpo): [docs/avaliacao/README.md](docs/avaliacao/README.md)
+- Casos documentados:
+  - ultima unidade no browser (normal + anonimo)
+  - idempotencia e tentativa duplicada
+  - cache de catalogo em Redis
+  - checkout assincrono com ERP instavel
 
 Cenários rápidos para demo:
 - Sucesso: `case-iphone-15`
