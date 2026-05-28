@@ -7,6 +7,7 @@
     "dev:up": "docker compose up --build",
     "dev:down": "docker compose down",
     "reset:all": "docker compose down -v && docker compose up --build",
+    "eval:reset": "docker compose up -d && npm run db:reset && docker compose exec -T redis redis-cli DEL products:list",
     "db:reset:erp": "docker compose exec -T erp npm -w packages/erp-db run db:reset",
     "db:reset:shop": "docker compose exec -T api npm -w packages/store-db run db:reset",
     "db:reset": "npm run db:reset:erp && npm run db:reset:shop",
