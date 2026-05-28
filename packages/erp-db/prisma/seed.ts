@@ -91,6 +91,36 @@ const products = [
     active: true,
     flaky: false,
   },
+  {
+    sku: "case-iphone-16",
+    name: "Capinha iPhone 16",
+    description: "Acabamento premium com proteção anti-impacto.",
+    priceCents: 8990,
+    stock: 1,
+    imageUrl: "https://picsum.photos/seed/case-iphone-16/600/600",
+    active: true,
+    flaky: false,
+  },
+  {
+    sku: "case-galaxy-z-flip6",
+    name: "Capinha Galaxy Z Flip6",
+    description: "Proteção articulada para dobráveis.",
+    priceCents: 11990,
+    stock: 1,
+    imageUrl: "https://picsum.photos/seed/case-galaxy-z-flip6/600/600",
+    active: true,
+    flaky: false,
+  },
+  {
+    sku: "case-redmi-note-14",
+    name: "Capinha Redmi Note 14",
+    description: "Leve, resistente e com bordas elevadas para a tela.",
+    priceCents: 5290,
+    stock: 1,
+    imageUrl: "https://picsum.photos/seed/case-redmi-note-14/600/600",
+    active: true,
+    flaky: false,
+  },
 ];
 
 async function main() {

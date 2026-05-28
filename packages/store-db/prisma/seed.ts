@@ -13,6 +13,9 @@ const STATIC_CATALOG = [
   { sku: "case-moto-g84",      name: "Capinha Moto G84",         description: "Proteção reforçada para quedas.",                      priceCents: 4990,  stock: 0   },
   { sku: "case-flaky-special", name: "Capinha Edição Instável",  description: "Edição limitada de colecionador.",                     priceCents: 9990,  stock: 100 },
   { sku: "case-asus-rog",      name: "Capinha Asus ROG Phone",   description: "Proteção gamer com design exclusivo.",                 priceCents: 10990, stock: 25  },
+  { sku: "case-iphone-16", name: "Capinha iPhone 16", description: "Acabamento premium com proteção anti-impacto.", priceCents: 8990, stock: 1 },
+  { sku: "case-galaxy-z-flip6", name: "Capinha Galaxy Z Flip6", description: "Proteção articulada para dobráveis.", priceCents: 11990, stock: 1 },
+  { sku: "case-redmi-note-14", name: "Capinha Redmi Note 14", description: "Leve, resistente e com bordas elevadas para a tela.", priceCents: 5290, stock: 1 },
 ];
 
 async function seedFromErp() {
