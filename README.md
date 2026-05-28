@@ -132,6 +132,9 @@ Cenários rápidos para demo:
 | `case-moto-g84` | 0 | estoque insuficiente |
 | `case-flaky-special` | 100 | instabilidade/retries |
 | `case-asus-rog` | 25 | fluxo regular |
+| `case-iphone-16` | 1 | concorrência/última unidade |
+| `case-galaxy-z-flip6` | 1 | concorrência/última unidade |
+| `case-redmi-note-14` | 1 | concorrência/última unidade |
 
 ## Decisões e trade-offs
 - Checkout assíncrono: melhora resiliência, mas introduz consistência eventual de status.

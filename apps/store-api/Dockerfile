@@ -21,4 +21,4 @@ COPY --from=build /app/packages ./packages
 COPY --from=build /app/apps/store-api/dist ./apps/store-api/dist
 COPY --from=build /app/apps/store-api/package.json ./apps/store-api/package.json
 EXPOSE 3000
-CMD ["node", "apps/store-api/dist/src/server.js"]
+CMD ["node", "apps/store-api/dist/server.js"]

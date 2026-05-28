@@ -20,6 +20,7 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<Respon
       body = {
         errorCode: 'INTERNAL_ERROR',
         message: `HTTP ${res.status}`,
+        details: [],
         requestId: ''
       }
     }

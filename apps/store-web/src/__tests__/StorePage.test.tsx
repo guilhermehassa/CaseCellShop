@@ -222,6 +222,7 @@ describe('StorePage', () => {
     const stockError: ApiErrorBody = {
       errorCode: 'INSUFFICIENT_STOCK',
       message: 'Estoque insuficiente.',
+      details: [],
       availableQuantity: 2,
       requestId: 'req-409'
     }
@@ -285,6 +286,7 @@ describe('StorePage', () => {
     const tempError: ApiErrorBody = {
       errorCode: 'TEMPORARY_PROCESSING_ERROR',
       message: 'Instabilidade temporária. Tente novamente.',
+      details: [],
       requestId: 'req-503'
     }
     mockCreateOrder.mockRejectedValue(tempError)

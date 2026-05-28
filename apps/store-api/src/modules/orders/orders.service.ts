@@ -1,6 +1,6 @@
 import { prisma, Prisma } from "../../lib/prisma";
 import { requestHash } from "../../lib/hash";
-import { atomicReserve } from "./orders.repo";
+import { atomicReserve, releaseReservation } from "./orders.repo";
 import { enqueueOrder } from "../../queue/orderQueue";
 import { env } from "../../config/env";
 import { logger } from "../../lib/logger";
@@ -8,6 +8,7 @@ import {
   ProductNotFoundError,
   InsufficientStockError,
   IdempotencyReuseError,
+  TemporaryError,
 } from "../../lib/errors";
 import type { CreateOrderRequest, CreateOrderAccepted } from "@cc/contracts";
 
@@ -130,12 +131,26 @@ export async function createOrder(
     throw err;
   }
 
-  // 8. Enqueue fora da transação — se falhar, o reaper recupera pedidos órfãos
+  // 8. Enqueue fora da transação — se falhar, desfaz a tentativa e devolve 503
   try {
     await enqueueOrder(order.id, requestId, idempotencyKey);
   } catch (err) {
     logger.error({ orderId: order.id, requestId, idempotencyKey, err }, "order.enqueue_failed");
-    // Não lança: pedido foi criado; o reservation-reaper irá reenfileirar
+    try {
+      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        await releaseReservation(tx, order.id, "RELEASED");
+        await tx.idempotencyKey.deleteMany({ where: { orderId: order.id } });
+        await tx.reservation.deleteMany({ where: { orderId: order.id } });
+        await tx.order.deleteMany({ where: { id: order.id } });
+      });
+    } catch (compensationErr) {
+      logger.error(
+        { orderId: order.id, requestId, idempotencyKey, err: compensationErr },
+        "order.enqueue_compensation_failed",
+      );
+    }
+
+    throw new TemporaryError();
   }
 
   // 9. Resposta 202 — aceito para processamento assíncrono
